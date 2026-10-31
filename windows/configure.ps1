@@ -85,12 +85,11 @@ if ($settings['profiles'] -isnot [System.Collections.IDictionary]) {
     $pwshProfile = $settings['profiles']['list'] |
         Where-Object { $_['source'] -eq 'Windows.Terminal.PowershellCore' -and -not $_['hidden'] } |
         Select-Object -First 1
-    if ($pwshProfile) {
-        $settings['defaultProfile'] = $pwshProfile['guid']
-        Write-Host '  default profile -> PowerShell 7'
-    } else {
-        Write-Warning 'No PowerShell 7 profile in Windows Terminal yet. Restart Windows Terminal and re-run to make it the default.'
-    }
+    # Windows Terminal only writes the PowerShell 7 profile into settings.json after it
+    # has been opened with pwsh installed. Its generated GUID is fixed, so use that.
+    $pwshGuid = if ($pwshProfile) { $pwshProfile['guid'] } else { '{574e775e-4f2a-5b96-ac1e-a2962a402336}' }
+    $settings['defaultProfile'] = $pwshGuid
+    Write-Host '  default profile -> PowerShell 7'
 }
 
 $settings['theme'] = 'dark'

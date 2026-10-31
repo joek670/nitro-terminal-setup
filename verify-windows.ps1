@@ -3,6 +3,13 @@
 #   irm https://raw.githubusercontent.com/joek670/nitro-terminal-setup/main/verify-windows.ps1 | iex
 # Keep this file ASCII-only.
 
+# Started from Windows PowerShell 5.1? Re-run in PowerShell 7 so its profile and modules are what get checked.
+if ($PSVersionTable.PSVersion.Major -lt 7 -and (Get-Command pwsh -ErrorAction SilentlyContinue)) {
+    Write-Host 'Switching to PowerShell 7 (pwsh) to run the checks...' -ForegroundColor Cyan
+    pwsh -NoLogo -Command 'irm https://raw.githubusercontent.com/joek670/nitro-terminal-setup/main/verify-windows.ps1 | iex'
+    return
+}
+
 $script:pass = 0; $script:fail = 0; $script:warn = 0
 function Ok($m)   { Write-Host "  PASS  $m" -ForegroundColor Green;  $script:pass++ }
 function Bad($m)  { Write-Host "  FAIL  $m" -ForegroundColor Red;    $script:fail++ }
@@ -77,7 +84,8 @@ if (-not $wtSettings) {
         if ($d.colorScheme -eq 'Catppuccin Mocha') { Ok 'Catppuccin Mocha is the default scheme' } else { Bad "Default scheme is '$($d.colorScheme)'" }
         if ($d.font.face -eq 'JetBrainsMono Nerd Font') { Ok 'Default font is JetBrainsMono Nerd Font' } else { Bad "Default font is '$($d.font.face)'" }
         $def = $s.profiles.list | Where-Object guid -eq $s.defaultProfile | Select-Object -First 1
-        if ($def.source -eq 'Windows.Terminal.PowershellCore') { Ok 'Default profile is PowerShell 7' } else { Meh "Default profile is '$($def.name)', not PowerShell 7" }
+        if ($def.source -eq 'Windows.Terminal.PowershellCore' -or $s.defaultProfile -eq '{574e775e-4f2a-5b96-ac1e-a2962a402336}') { Ok 'Default profile is PowerShell 7' }
+        else { Meh "Default profile is '$($def.name)', not PowerShell 7" }
     } catch {
         Bad "Could not read settings.json: $($_.Exception.Message)"
     }
