@@ -27,7 +27,13 @@ function Install-ConfigFile($Source, $Destination) {
 
 Write-Host '==> Execution policy (CurrentUser: RemoteSigned, so the profile can load)'
 if ((Get-ExecutionPolicy -Scope CurrentUser) -in 'Undefined', 'Restricted', 'AllSigned') {
-    Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+    # When this runs under -ExecutionPolicy Bypass, PowerShell saves the setting but
+    # reports that the Process scope overrides it. That is expected; carry on.
+    try {
+        Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+    } catch {
+        if ((Get-ExecutionPolicy -Scope CurrentUser) -ne 'RemoteSigned') { throw }
+    }
 }
 
 Write-Host '==> PowerShell modules'
