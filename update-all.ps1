@@ -24,6 +24,8 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
+# omp, apt and brew print UTF-8; without this their symbols show up as mojibake.
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
 $taskName  = 'Nitro terminal setup - update all'
 $home_     = Join-Path $env:LOCALAPPDATA 'nitro-terminal-setup'
 $installed = Join-Path $home_ 'update-all.ps1'
@@ -77,7 +79,12 @@ function Invoke-Step([string]$Name, [scriptblock]$Body) {
     $global:LASTEXITCODE = 0
     try {
         # Pipe through Write-Host so native output lands in the transcript (5.1 skips it otherwise).
-        & $Body 2>&1 | ForEach-Object { Write-Host (([string]$_) -replace "`0", '') }
+        # The leading `r stops the stair-step output wsl.exe leaves behind in the console.
+        & $Body 2>&1 | ForEach-Object {
+            $line = if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.Exception.Message } else { [string]$_ }
+            if ($line -eq 'System.Management.Automation.RemoteException') { $line = '' }
+            Write-Host ("`r" + ($line -replace "`0", ''))
+        }
         if ($LASTEXITCODE -ne 0) { $results.Add("WARN  $Name (exit $LASTEXITCODE)") } else { $results.Add("OK    $Name") }
     } catch {
         Write-Host $_ -ForegroundColor Red
@@ -100,12 +107,38 @@ function Invoke-Wsl([string]$Command, [switch]$AsRoot) {
 }
 $brewEnv = 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; export PATH="$HOME/.bun/bin:$PATH"'
 
+function Get-WingetIds {
+    $file = Join-Path $env:TEMP "winget-export-$(Get-Random).json"
+    winget export --output $file --source winget --accept-source-agreements --disable-interactivity *> $null
+    $ids = @()
+    if (Test-Path $file) {
+        $ids = (Get-Content $file -Raw | ConvertFrom-Json).Sources | ForEach-Object { $_.Packages } |
+            ForEach-Object { $_.PackageIdentifier }
+        Remove-Item $file -Force
+    }
+    $ids
+}
+
 if (-not $SkipWinget) {
+    $idsBefore = Get-WingetIds
     Invoke-Step 'winget: upgrade all apps' {
         winget source update --disable-interactivity | Out-Null
         winget upgrade --all --silent --disable-interactivity --accept-package-agreements --accept-source-agreements
-        # -1978335189 = "no applicable upgrade"; not an error.
+        # 0x8A15002B = "no applicable upgrade"; not an error. 0x8A15002C = some upgrades failed (listed below).
         if ($LASTEXITCODE -eq -1978335189) { $global:LASTEXITCODE = 0 }
+    }
+    Invoke-Step 'winget: anything still outdated or removed' {
+        # Some installers uninstall the old version first; if the new one then fails, the app is gone.
+        $idsAfter = Get-WingetIds
+        $removed = @($idsBefore | Where-Object { $idsAfter -notcontains $_ })
+        foreach ($id in $removed) {
+            Write-Host "REMOVED during upgrade, reinstall with: winget install --id $id --exact" -ForegroundColor Red
+            $results.Add("FAIL  $id was uninstalled by its upgrade and not reinstalled")
+        }
+        Write-Host 'Still outdated (close the app and run the update again, or check the installer log above):'
+        winget upgrade --include-unknown --disable-interactivity --accept-source-agreements
+        if ($LASTEXITCODE -eq -1978335189) { $global:LASTEXITCODE = 0 }
+        if ($removed.Count -gt 0) { $global:LASTEXITCODE = 1 }
     }
 }
 
@@ -113,7 +146,7 @@ if (Get-Command pwsh -ErrorAction SilentlyContinue) {
     Invoke-Step 'PowerShell 7 modules: PSFzf, PSReadLine' {
         $moduleScript = @'
 foreach ($m in 'PSFzf', 'PSReadLine') {
-    if (Get-InstalledModule $m -ErrorAction SilentlyContinue) { Update-Module $m -Force -ErrorAction Continue }
+    if (Get-InstalledModule $m -ErrorAction SilentlyContinue) { Update-Module $m -ErrorAction Continue }
     elseif ($m -eq 'PSReadLine') { Install-Module PSReadLine -Scope CurrentUser -Force -AllowClobber -ErrorAction Continue }
     Write-Output "$m $((Get-Module -ListAvailable $m | Sort-Object Version -Descending | Select-Object -First 1).Version)"
 }
@@ -147,6 +180,41 @@ if (-not $SkipWsl) {
         }
     } else {
         $results.Add('SKIP  Ubuntu steps (no WSL distro named Ubuntu)')
+    }
+}
+
+Invoke-Step 'Security status (report only)' {
+    try {
+        Update-MpSignature -ErrorAction Stop
+        $mp = Get-MpComputerStatus -ErrorAction Stop
+        Write-Host ("Defender: antivirus {0}, real-time {1}, signatures {2} day(s) old" -f `
+            $mp.AntivirusEnabled, $mp.RealTimeProtectionEnabled, $mp.AntivirusSignatureAge)
+        if (-not $mp.AntivirusEnabled -or -not $mp.RealTimeProtectionEnabled) {
+            $results.Add('FAIL  Defender antivirus or real-time protection is off')
+        }
+    } catch { Write-Host "Defender status unavailable (another antivirus may be in charge): $($_.Exception.Message)" }
+
+    $lastPatch = Get-HotFix | Where-Object InstalledOn | Sort-Object InstalledOn -Descending | Select-Object -First 1
+    if ($lastPatch) {
+        $age = [int]((Get-Date) - $lastPatch.InstalledOn).TotalDays
+        Write-Host "Windows Update: last update $($lastPatch.HotFixID) installed $age day(s) ago"
+        if ($age -gt 45) { $results.Add("WARN  Windows Update: nothing installed for $age days; check Settings > Windows Update") }
+    }
+    $rebootKeys = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired',
+                  'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending'
+    if ($rebootKeys | Where-Object { Test-Path $_ }) {
+        Write-Host 'Windows: a restart is pending to finish installing updates.'
+        $results.Add('WARN  Restart Windows to finish installing updates')
+    }
+
+    if ($wslUbuntu) {
+        Invoke-Wsl -AsRoot @'
+sec=$(apt list --upgradable 2>/dev/null | grep -c -- '-security')
+echo "Ubuntu: $sec security update(s) still pending"
+[ -f /var/run/reboot-required ] && echo "Ubuntu: restart WSL to finish updates (wsl --shutdown)"
+systemctl is-enabled unattended-upgrades >/dev/null 2>&1 && echo "Ubuntu: unattended security upgrades enabled" || echo "Ubuntu: unattended security upgrades NOT enabled"
+exit 0
+'@
     }
 }
 
