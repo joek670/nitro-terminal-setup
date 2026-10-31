@@ -8,6 +8,7 @@ agent and Catppuccin Mocha everywhere.
 
 ```
 bootstrap.ps1                        One-line download + install (Windows)
+verify-windows.ps1, verify-wsl.sh    Read-only checks that everything installed and loads
 install-windows.ps1                  Windows side (run first, as admin)
 windows/configure.ps1                PowerShell 7 profile, Starship, Windows Terminal settings
 windows/Microsoft.PowerShell_profile.ps1
@@ -45,6 +46,19 @@ wsl/nvim/lua/plugins/colorscheme.lua -> LazyVim Catppuccin theme
 
 Both scripts can be re-run safely. Packages already installed are skipped, and
 any config they replace is kept as `<file>.bak-<timestamp>`.
+
+## Check it worked
+
+Both scripts only read; they print PASS / FAIL / WARN for every piece.
+
+- Windows, in a **new PowerShell 7** tab:
+  ```powershell
+  irm https://raw.githubusercontent.com/joek670/nitro-terminal-setup/main/verify-windows.ps1 | iex
+  ```
+- WSL, in a **new Ubuntu** tab:
+  ```bash
+  bash <(curl -fsSL https://raw.githubusercontent.com/joek670/nitro-terminal-setup/main/verify-wsl.sh)
+  ```
 
 ## What it changes
 
