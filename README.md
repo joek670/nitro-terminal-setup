@@ -9,6 +9,7 @@ agent and Catppuccin Mocha everywhere.
 ```
 bootstrap.ps1                        One-line download + install (Windows)
 verify-windows.ps1, verify-wsl.sh    Read-only checks that everything installed and loads
+update-all.ps1                       Update everything; -Register schedules it weekly
 install-windows.ps1                  Windows side (run first, as admin)
 windows/configure.ps1                PowerShell 7 profile, Starship, Windows Terminal settings
 windows/Microsoft.PowerShell_profile.ps1
@@ -59,6 +60,31 @@ Both scripts only read; they print PASS / FAIL / WARN for every piece.
   ```bash
   bash <(curl -fsSL https://raw.githubusercontent.com/joek670/nitro-terminal-setup/main/verify-wsl.sh)
   ```
+
+## Keep everything up to date
+
+`update-all.ps1` updates, in one go:
+
+- every winget app (`winget upgrade --all`), including Windows Terminal, PowerShell 7 and the CLI tools
+- PowerShell 7 modules (PSFzf, PSReadLine) and oh-my-pi on Windows (`omp update`)
+- WSL itself (`wsl --update`), Ubuntu packages (`apt full-upgrade`), Homebrew packages
+- oh-my-pi in WSL, Neovim plugins (LazyVim sync) and the Catppuccin tmux theme (latest v2.x)
+
+Run it now from an **admin** PowerShell:
+```powershell
+irm https://raw.githubusercontent.com/joek670/nitro-terminal-setup/main/update-all.ps1 | iex
+```
+
+Run it automatically every week (Sunday 12:00, or the next time the laptop is on).
+From the repo folder, in an admin PowerShell:
+```powershell
+cd $env:USERPROFILE\nitro-terminal-setup
+.\update-all.ps1 -Register                  # or: -Register -Day Wednesday -At 03:00
+.\update-all.ps1 -Unregister                # stop the schedule
+```
+The task runs a saved copy at `%LOCALAPPDATA%\nitro-terminal-setup\update-all.ps1`, hidden,
+and logs to `%LOCALAPPDATA%\nitro-terminal-setup\logs`. Windows itself, drivers and Store
+apps keep updating through Windows Update and the Microsoft Store.
 
 ## What it changes
 
