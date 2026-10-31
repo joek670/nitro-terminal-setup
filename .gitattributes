@@ -1,0 +1,2 @@
+# Keep LF everywhere: bash and tmux break on CRLF if this is cloned on Windows.
+* text=auto eol=lf
