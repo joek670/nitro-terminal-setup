@@ -135,19 +135,28 @@ if (-not $SkipWinget) {
             Write-Host "REMOVED during upgrade, reinstall with: winget install --id $id --exact" -ForegroundColor Red
             $results.Add("FAIL  $id was uninstalled by its upgrade and not reinstalled")
         }
-        Write-Host 'Still outdated (close the app and run the update again, or check the installer log above):'
-        winget upgrade --include-unknown --disable-interactivity --accept-source-agreements
-        if ($LASTEXITCODE -eq -1978335189) { $global:LASTEXITCODE = 0 }
+        $out = winget upgrade --include-unknown --disable-interactivity --accept-source-agreements 2>&1 | ForEach-Object { [string]$_ }
+        # Table rows end in the source name; the Id is the 4th column from the right (names can contain spaces).
+        $outdated = @($out | Where-Object { $_ -match '\swinget\s*$' } | ForEach-Object {
+            $cols = -split $_; if ($cols.Count -ge 5) { $cols[-4] } })
+        if ($outdated.Count -gt 0) {
+            Write-Host 'Still outdated (usually the app was open; close it and it is retried next run):'
+            $out
+            $results.Add("WARN  still outdated: $($outdated -join ', ')")
+        } else {
+            Write-Host 'Nothing outdated.'
+        }
+        $global:LASTEXITCODE = 0
         if ($removed.Count -gt 0) { $global:LASTEXITCODE = 1 }
     }
 }
 
 if (Get-Command pwsh -ErrorAction SilentlyContinue) {
-    Invoke-Step 'PowerShell 7 modules: PSFzf, PSReadLine' {
+    Invoke-Step 'PowerShell 7 module: PSFzf' {
         $moduleScript = @'
-foreach ($m in 'PSFzf', 'PSReadLine') {
+# PSReadLine ships with PowerShell 7 and updates with it (winget), so only PSFzf here.
+foreach ($m in 'PSFzf') {
     if (Get-InstalledModule $m -ErrorAction SilentlyContinue) { Update-Module $m -ErrorAction Continue }
-    elseif ($m -eq 'PSReadLine') { Install-Module PSReadLine -Scope CurrentUser -Force -AllowClobber -ErrorAction Continue }
     Write-Output "$m $((Get-Module -ListAvailable $m | Sort-Object Version -Descending | Select-Object -First 1).Version)"
 }
 '@

@@ -66,7 +66,7 @@ Both scripts only read; they print PASS / FAIL / WARN for every piece.
 `update-all.ps1` updates, in one go:
 
 - every winget app (`winget upgrade --all`), including Windows Terminal, PowerShell 7 and the CLI tools
-- PowerShell 7 modules (PSFzf, PSReadLine) and oh-my-pi on Windows (`omp update`)
+- the PSFzf PowerShell module and oh-my-pi on Windows (`omp update`)
 - WSL itself (`wsl --update`), Ubuntu packages (`apt full-upgrade`), Homebrew packages
 - oh-my-pi in WSL, Neovim plugins (LazyVim sync) and the Catppuccin tmux theme (latest v2.x)
 
