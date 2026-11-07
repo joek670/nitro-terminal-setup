@@ -46,6 +46,9 @@ check_cmd rg --version
 check_cmd fd --version
 check_cmd zoxide --version
 check_cmd lazygit --version
+check_cmd btop --version
+check_cmd yazi --version
+check_cmd gh --version
 check_cmd git --version
 check_cmd omp --version
 
@@ -95,6 +98,12 @@ fi
 shell_check=$(bash -ic 'type -t ll; echo "$BAT_THEME"; type -t __zoxide_z; type -t starship_precmd' 2>/dev/null | tr '\n' ' ')
 [[ $shell_check == alias*"Catppuccin Mocha"*function*function* ]] && ok "interactive bash: aliases, theme, zoxide, Starship loaded" \
   || bad "interactive bash setup incomplete (got: $shell_check)"
+[[ $(bash -ic 'type -t y' 2>/dev/null) == function ]] && ok "interactive bash: y (yazi) wrapper loaded" \
+  || bad "interactive bash: y (yazi) wrapper missing"
+
+if command -v gh >/dev/null; then
+  if gh auth status >/dev/null 2>&1; then ok "gh is signed in"; else meh "gh is not signed in (run: gh auth login)"; fi
+fi
 
 if command -v omp >/dev/null; then
   if timeout 20 omp --help >/dev/null 2>&1; then ok "omp starts"; else bad "omp is installed but 'omp --help' failed"; fi

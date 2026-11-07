@@ -35,6 +35,16 @@ alias cat='bat --paging=never'
 alias vim='nvim'
 alias lg='lazygit'
 
+# yazi: `y` opens the file manager and cds to wherever you quit it (q; Q quits without cd)
+y() {
+  local tmp cwd
+  tmp="$(mktemp -t yazi-cwd.XXXXXX)"
+  yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+  rm -f -- "$tmp"
+}
+
 # sesh picker outside tmux: Alt+s
 sesh-pick() {
   local session

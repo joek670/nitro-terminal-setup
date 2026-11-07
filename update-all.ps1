@@ -175,7 +175,7 @@ if (-not $SkipWsl) {
         Invoke-Step 'Ubuntu packages (apt)' {
             Invoke-Wsl -AsRoot 'export DEBIAN_FRONTEND=noninteractive; apt-get update -q && apt-get -y -q full-upgrade && apt-get -y -q autoremove'
         }
-        Invoke-Step 'Homebrew packages (tmux, sesh, Neovim, Starship, CLI tools, Bun)' {
+        Invoke-Step 'Homebrew packages (tmux, sesh, Neovim, Starship, btop, yazi, gh, CLI tools, Bun)' {
             Invoke-Wsl "$brewEnv; brew update && brew upgrade && brew cleanup"
         }
         Invoke-Step 'oh-my-pi (WSL)' {
