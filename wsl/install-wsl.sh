@@ -39,7 +39,8 @@ install_config() { # <source> <destination>
 
 say "apt prerequisites"
 sudo apt-get update
-sudo apt-get install -y build-essential procps curl file git unzip ncurses-term
+# python3-venv: Neovim's Mason installs Python tools (ruff) into venvs.
+sudo apt-get install -y build-essential procps curl file git unzip ncurses-term python3-venv
 
 say "Homebrew"
 if [[ ! -x $BREW ]]; then
@@ -49,8 +50,9 @@ else
 fi
 eval "$($BREW shellenv)"
 
-say "Packages: tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh"
-brew install tmux sesh neovim starship eza bat fzf ripgrep fd zoxide lazygit btop yazi gh
+say "Packages: tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh, Node"
+# node: Mason installs most language servers (pyright, vtsls, JSON/YAML/Docker) with npm.
+brew install tmux sesh neovim starship eza bat fzf ripgrep fd zoxide lazygit btop yazi gh node
 
 say "AI coding agent: oh-my-pi (omp)"
 export PATH="$HOME/.bun/bin:$PATH"
@@ -91,6 +93,29 @@ fi
 install_config "$HERE/nvim/lua/plugins/colorscheme.lua" "$HOME/.config/nvim/lua/plugins/colorscheme.lua"
 echo "  installing Neovim plugins (first run takes a minute)"
 nvim --headless "+Lazy! sync" +qa || warn "LazyVim sync failed; it will retry when you open nvim."
+
+# Language support for the repos on this machine. Added through LazyVim's own lazyvim.json
+# (what :LazyExtras edits), so extras you turned on yourself are kept. Keep in sync with verify-wsl.sh.
+say "LazyVim language extras: Python, TypeScript/JS, JSON, YAML, Docker, Markdown, TOML"
+export NITRO_LAZYVIM_EXTRAS="lang.python lang.typescript lang.json lang.yaml lang.docker lang.markdown lang.toml"
+added=$(nvim --headless "+lua (function()
+  if not _G.LazyVim then io.write('\nNITRO_ADDED=no-lazyvim\n') return end
+  local data, have, added = LazyVim.config.json.data, {}, 0
+  for _, e in ipairs(data.extras) do have[e] = true end
+  for name in vim.env.NITRO_LAZYVIM_EXTRAS:gmatch('%S+') do
+    local e = 'lazyvim.plugins.extras.' .. name
+    if not have[e] then table.insert(data.extras, e); added = added + 1 end
+  end
+  if added > 0 then LazyVim.json.save() end
+  io.write('\nNITRO_ADDED=' .. added .. '\n')
+end)()" +qa 2>/dev/null | sed -n 's/.*NITRO_ADDED=\([0-9a-z-]*\).*/\1/p' | tail -n 1) || added=''
+case $added in
+  no-lazyvim|'') warn "LazyVim did not load headless; enable the extras later with :LazyExtras" ;;
+  0) echo "  [skip] all extras already enabled" ;;
+  *) echo "  enabled $added extra(s) in ~/.config/nvim/lazyvim.json; installing their plugins"
+     nvim --headless "+Lazy! sync" +qa || warn "LazyVim sync failed; it will retry when you open nvim." ;;
+esac
+echo "  language servers (pyright, ruff, vtsls, ...) install the first time you open nvim; :Mason shows progress"
 
 say "btop + Catppuccin"
 BTOP_DIR="$HOME/.config/btop"
@@ -142,7 +167,7 @@ Open a new Ubuntu tab (or run: exec bash), then try:
   tmux             start tmux (prefix is Ctrl+a)
   Ctrl+a T         sesh session picker inside tmux
   Alt+s            sesh session picker outside tmux
-  nvim             Neovim with LazyVim
+  nvim             Neovim with LazyVim (first open installs language servers; :Mason shows them)
   omp              oh-my-pi coding agent (first run asks you to log in / pick a provider)
   Ctrl+a a         omp in a split next to the current pane
   y                yazi file manager (quitting with q leaves you in the folder you were in)

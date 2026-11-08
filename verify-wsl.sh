@@ -50,6 +50,8 @@ check_cmd btop --version
 check_cmd yazi --version
 check_cmd gh --version
 check_cmd git --version
+check_cmd node --version
+check_cmd npm --version
 check_cmd omp --version
 
 if command -v nvim >/dev/null; then
@@ -74,6 +76,21 @@ else bad "btop.conf does not set color_theme = \"catppuccin_mocha\""; fi
 check_file "$HOME/.config/yazi/theme.toml" "yazi theme"
 check_file "$HOME/.config/yazi/flavors/catppuccin-mocha.yazi/flavor.toml" "yazi Catppuccin Mocha flavor"
 if [[ -d $HOME/.local/share/nvim/lazy/LazyVim ]]; then ok "LazyVim plugins downloaded"; else bad "LazyVim plugins not downloaded (open nvim once)"; fi
+# Keep this list in sync with install-wsl.sh.
+missing_extras=()
+for e in lang.python lang.typescript lang.json lang.yaml lang.docker lang.markdown lang.toml; do
+  grep -qF "\"lazyvim.plugins.extras.$e\"" "$HOME/.config/nvim/lazyvim.json" 2>/dev/null || missing_extras+=("$e")
+done
+if [[ ${#missing_extras[@]} -eq 0 ]]; then ok "LazyVim language extras enabled (Python, TS/JS, JSON, YAML, Docker, Markdown, TOML)"
+else bad "LazyVim extras missing from ~/.config/nvim/lazyvim.json: ${missing_extras[*]}"; fi
+if python3 -c 'import ensurepip, venv' 2>/dev/null; then ok "python3 venv available (Mason Python tools)"; else bad "python3-venv missing (sudo apt install python3-venv)"; fi
+mason_bin="$HOME/.local/share/nvim/mason/bin"
+missing_ls=()
+for s in pyright ruff vtsls vscode-json-language-server yaml-language-server docker-langserver marksman taplo; do
+  [[ -e $mason_bin/$s ]] || missing_ls+=("$s")
+done
+if [[ ${#missing_ls[@]} -eq 0 ]]; then ok "language servers installed by Mason"
+else meh "language servers not installed yet: ${missing_ls[*]} (open nvim once and wait, or run :Mason)"; fi
 if grep -qF '.config/bash/nitro.sh' "$HOME/.bashrc" 2>/dev/null; then ok "~/.bashrc loads the additions"; else bad "~/.bashrc does not source ~/.config/bash/nitro.sh"; fi
 
 head_ "Do they actually work"

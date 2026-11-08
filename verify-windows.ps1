@@ -65,6 +65,27 @@ if ((Get-Command ll -ErrorAction SilentlyContinue).CommandType -eq 'Function') {
 $starshipToml = Join-Path $HOME '.config\starship.toml'
 if (Test-Path $starshipToml) { Ok "Starship config ($starshipToml)" } else { Bad "Starship config missing ($starshipToml)" }
 
+# Profile load time: median of 3 starts with the profile minus 3 without it.
+# (-Command mode skips PSReadLine, so a real window adds a little on top.)
+$pwshExe = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+if ($pwshExe -and (Test-Path $pwshProfile)) {
+    $median = {
+        param([string[]]$PwshArgs)
+        $runs = foreach ($i in 1..3) { (Measure-Command { & $pwshExe @PwshArgs | Out-Null }).TotalMilliseconds }
+        ($runs | Sort-Object)[1]
+    }
+    $with = & $median @('-NoLogo', '-Command', 'exit')
+    $without = & $median @('-NoLogo', '-NoProfile', '-Command', 'exit')
+    $ms = [int][Math]::Max(0, $with - $without)
+    if ($ms -le 500) { Ok "Profile loads in about $ms ms" }
+    else { Meh "Profile takes about $ms ms to load (see where: `$env:NITRO_PROFILE_TIMING = 1; pwsh)" }
+}
+$initCache = Join-Path $env:LOCALAPPDATA 'nitro-terminal-setup\cache'
+foreach ($n in 'zoxide', 'starship') {
+    if (Test-Path (Join-Path $initCache "$n-init.ps1")) { Ok "$n init cached ($initCache)" }
+    else { Meh "$n init not cached yet (open a new PowerShell 7 tab)" }
+}
+
 Head 'Font'
 $font = Get-ChildItem "$env:WINDIR\Fonts", "$env:LOCALAPPDATA\Microsoft\Windows\Fonts" -Filter 'JetBrainsMonoNerdFont*' -ErrorAction SilentlyContinue
 if ($font) { Ok "JetBrainsMono Nerd Font ($($font.Count) files)" } else { Bad 'JetBrainsMono Nerd Font not installed' }
