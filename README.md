@@ -19,6 +19,7 @@ wsl/install-wsl.sh                   WSL side (run inside Ubuntu)
 wsl/tmux.conf                        -> ~/.config/tmux/tmux.conf
 wsl/bashrc-nitro.sh                  -> ~/.config/bash/nitro.sh (sourced from ~/.bashrc)
 wsl/nvim/lua/plugins/colorscheme.lua -> LazyVim Catppuccin theme
+wsl/yazi/theme.toml                  -> ~/.config/yazi/theme.toml (Catppuccin Mocha flavor)
 ```
 
 ## Install
@@ -68,7 +69,7 @@ Both scripts only read; they print PASS / FAIL / WARN for every piece.
 - every winget app (`winget upgrade --all`), including Windows Terminal, PowerShell 7 and the CLI tools
 - the PSFzf PowerShell module and oh-my-pi on Windows (`omp update`)
 - WSL itself (`wsl --update`), Ubuntu packages (`apt full-upgrade`), Homebrew packages
-- oh-my-pi in WSL, Neovim plugins (LazyVim sync) and the Catppuccin tmux theme (latest v2.x)
+- oh-my-pi in WSL, Neovim plugins (LazyVim sync), the yazi Catppuccin flavor (`ya pkg upgrade`) and the Catppuccin tmux theme (latest v2.x)
 
 Run it now from an **admin** PowerShell:
 ```powershell
@@ -94,7 +95,7 @@ apps keep updating through Windows Update and the Microsoft Store.
 | PowerShell | `PSFzf` module; profile at `$PROFILE`; execution policy CurrentUser -> RemoteSigned |
 | Windows Terminal | Adds Catppuccin Mocha; defaults: that scheme, JetBrainsMono Nerd Font 11, PowerShell 7 as default profile. Comments in `settings.json` are not kept (backup is) |
 | `%USERPROFILE%\.wslconfig` | Only if missing: WSL memory capped at half your RAM, gradual memory reclaim |
-| WSL | Ubuntu, Homebrew, tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh, Bun + oh-my-pi; LazyVim starter in `~/.config/nvim` |
+| WSL | Ubuntu, Homebrew, tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh, Bun + oh-my-pi; Catppuccin Mocha for btop (`~/.config/btop`, only `color_theme` is changed) and yazi (`~/.config/yazi`); LazyVim starter in `~/.config/nvim` |
 
 ## Cheat sheet
 

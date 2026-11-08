@@ -68,6 +68,11 @@ check_file "$HOME/.config/tmux/plugins/catppuccin/tmux/catppuccin.tmux" "Catppuc
 check_file "$HOME/.config/bash/nitro.sh" "bash additions"
 check_file "$HOME/.config/nvim/init.lua" "LazyVim starter"
 check_file "$HOME/.config/nvim/lua/plugins/colorscheme.lua" "LazyVim Catppuccin theme"
+check_file "$HOME/.config/btop/themes/catppuccin_mocha.theme" "btop Catppuccin theme"
+if grep -qx 'color_theme = "catppuccin_mocha"' "$HOME/.config/btop/btop.conf" 2>/dev/null; then ok "btop uses catppuccin_mocha"
+else bad "btop.conf does not set color_theme = \"catppuccin_mocha\""; fi
+check_file "$HOME/.config/yazi/theme.toml" "yazi theme"
+check_file "$HOME/.config/yazi/flavors/catppuccin-mocha.yazi/flavor.toml" "yazi Catppuccin Mocha flavor"
 if [[ -d $HOME/.local/share/nvim/lazy/LazyVim ]]; then ok "LazyVim plugins downloaded"; else bad "LazyVim plugins not downloaded (open nvim once)"; fi
 if grep -qF '.config/bash/nitro.sh' "$HOME/.bashrc" 2>/dev/null; then ok "~/.bashrc loads the additions"; else bad "~/.bashrc does not source ~/.config/bash/nitro.sh"; fi
 

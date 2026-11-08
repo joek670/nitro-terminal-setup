@@ -184,6 +184,9 @@ if (-not $SkipWsl) {
         Invoke-Step 'Neovim plugins (LazyVim sync)' {
             Invoke-Wsl "$brewEnv; timeout 600 nvim --headless '+Lazy! sync' +qa"
         }
+        Invoke-Step 'yazi Catppuccin flavor (ya pkg upgrade)' {
+            Invoke-Wsl "$brewEnv; if command -v ya >/dev/null; then ya pkg upgrade; else echo 'yazi not installed in WSL'; fi"
+        }
         Invoke-Step 'tmux Catppuccin theme' {
             Invoke-Wsl 'd=$HOME/.config/tmux/plugins/catppuccin/tmux; [ -d "$d/.git" ] && git -C "$d" fetch -q --tags --depth 1 origin && git -C "$d" checkout -q "$(git -C "$d" tag -l "v2.*" --sort=-v:refname | head -n 1)" && echo "catppuccin/tmux $(git -C "$d" describe --tags)" || echo "not installed"'
         }

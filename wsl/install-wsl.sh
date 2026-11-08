@@ -92,6 +92,40 @@ install_config "$HERE/nvim/lua/plugins/colorscheme.lua" "$HOME/.config/nvim/lua/
 echo "  installing Neovim plugins (first run takes a minute)"
 nvim --headless "+Lazy! sync" +qa || warn "LazyVim sync failed; it will retry when you open nvim."
 
+say "btop + Catppuccin"
+BTOP_DIR="$HOME/.config/btop"
+mkdir -p "$BTOP_DIR/themes"
+if [[ -s $BTOP_DIR/themes/catppuccin_mocha.theme ]]; then
+  echo "  [skip] Catppuccin Mocha theme already downloaded"
+else
+  curl -fsSL -o "$BTOP_DIR/themes/catppuccin_mocha.theme" \
+    https://raw.githubusercontent.com/catppuccin/btop/1.0.0/themes/catppuccin_mocha.theme \
+    && echo "  downloaded catppuccin_mocha.theme" || warn "could not download the btop Catppuccin theme"
+fi
+# btop rewrites btop.conf on exit and keeps the values it finds, so set just this one line.
+if [[ ! -f $BTOP_DIR/btop.conf ]]; then
+  printf 'color_theme = "catppuccin_mocha"\n' > "$BTOP_DIR/btop.conf"
+  echo "  wrote $BTOP_DIR/btop.conf"
+elif grep -qx 'color_theme = "catppuccin_mocha"' "$BTOP_DIR/btop.conf"; then
+  echo "  [skip] btop already uses catppuccin_mocha"
+else
+  cp "$BTOP_DIR/btop.conf" "$BTOP_DIR/btop.conf.bak-$STAMP"
+  if grep -q '^color_theme' "$BTOP_DIR/btop.conf"; then
+    sed -i 's/^color_theme.*/color_theme = "catppuccin_mocha"/' "$BTOP_DIR/btop.conf"
+  else
+    printf 'color_theme = "catppuccin_mocha"\n' >> "$BTOP_DIR/btop.conf"
+  fi
+  echo "  set color_theme in $BTOP_DIR/btop.conf (backup: btop.conf.bak-$STAMP)"
+fi
+
+say "yazi + Catppuccin"
+if [[ -d $HOME/.config/yazi/flavors/catppuccin-mocha.yazi ]]; then
+  echo "  [skip] catppuccin-mocha flavor already installed"
+else
+  ya pkg add yazi-rs/flavors:catppuccin-mocha || warn "could not add the yazi Catppuccin flavor; re-run later"
+fi
+install_config "$HERE/yazi/theme.toml" "$HOME/.config/yazi/theme.toml"
+
 say "bash"
 install_config "$HERE/bashrc-nitro.sh" "$HOME/.config/bash/nitro.sh"
 SOURCE_LINE='[ -f "$HOME/.config/bash/nitro.sh" ] && . "$HOME/.config/bash/nitro.sh"'
