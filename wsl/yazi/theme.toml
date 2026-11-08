@@ -1,0 +1,7 @@
+# Yazi theme -> ~/.config/yazi/theme.toml
+# Uses the Catppuccin Mocha flavor that install-wsl.sh adds with:
+#   ya pkg add yazi-rs/flavors:catppuccin-mocha
+# update-all.ps1 keeps it current (ya pkg upgrade).
+[flavor]
+dark  = "catppuccin-mocha"
+light = "catppuccin-mocha"
