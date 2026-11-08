@@ -92,10 +92,10 @@ apps keep updating through Windows Update and the Microsoft Store.
 | Where | Change |
 |---|---|
 | winget | Windows Terminal, PowerShell 7, Git, GitHub CLI (gh), Starship, eza, bat, fzf, ripgrep, fd, zoxide, Neovim, lazygit, oh-my-pi, JetBrainsMono Nerd Font |
-| PowerShell | `PSFzf` module; profile at `$PROFILE`; execution policy CurrentUser -> RemoteSigned |
+| PowerShell | `PSFzf` module; profile at `$PROFILE`; execution policy CurrentUser -> RemoteSigned; zoxide/Starship init scripts cached in `%LOCALAPPDATA%\nitro-terminal-setup\cache` |
 | Windows Terminal | Adds Catppuccin Mocha; defaults: that scheme, JetBrainsMono Nerd Font 11, PowerShell 7 as default profile. Comments in `settings.json` are not kept (backup is) |
 | `%USERPROFILE%\.wslconfig` | Only if missing: WSL memory capped at half your RAM, gradual memory reclaim |
-| WSL | Ubuntu, Homebrew, tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh, Bun + oh-my-pi; Catppuccin Mocha for btop (`~/.config/btop`, only `color_theme` is changed) and yazi (`~/.config/yazi`); LazyVim starter in `~/.config/nvim` |
+| WSL | Ubuntu, Homebrew, tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh, Node, python3-venv, Bun + oh-my-pi; LazyVim extras for Python, TypeScript/JS, JSON, YAML, Docker, Markdown and TOML (added to `~/.config/nvim/lazyvim.json`, your own extras are kept); Catppuccin Mocha for btop (`~/.config/btop`, only `color_theme` is changed) and yazi (`~/.config/yazi`); LazyVim starter in `~/.config/nvim` |
 
 ## Cheat sheet
 
@@ -117,6 +117,25 @@ apps keep updating through Windows Update and the Microsoft Store.
 | `y` | bash | yazi file manager; `q` quits into the folder you were in, `Q` quits without moving |
 | `btop` | bash | System monitor. In WSL it shows the Linux VM (Docker, builds), not Windows apps |
 | `gh` | both | GitHub CLI; run `gh auth login` once on each side |
+
+## Fast PowerShell start
+
+The profile does one PATH lookup for all tools, caches the zoxide and Starship init
+scripts outside OneDrive (rebuilt automatically when either tool is upgraded) and loads
+PSFzf just after the first prompt appears. `verify-windows.ps1` warns if the profile takes
+more than 500 ms. To see where the time goes:
+
+```powershell
+$env:NITRO_PROFILE_TIMING = 1; pwsh
+```
+
+If the cache ever looks stale, delete `%LOCALAPPDATA%\nitro-terminal-setup\cache`.
+
+## Neovim language support
+
+The first time you open `nvim` after installing, Mason downloads the language servers
+(pyright and ruff for Python, vtsls for TypeScript/JS, plus JSON, YAML, Docker, Markdown
+and TOML). Watch progress with `:Mason`; `:LazyExtras` turns more languages on or off.
 
 ## Before gaming
 
