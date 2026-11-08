@@ -2,7 +2,7 @@
 # Nitro terminal setup - WSL (Ubuntu) side.
 # Run inside Ubuntu as your normal user (not root):
 #   bash /mnt/c/Users/<you>/nitro-terminal-setup/wsl/install-wsl.sh
-# Installs tmux, sesh, Neovim + LazyVim, Starship, modern CLI tools and the oh-my-pi
+# Installs tmux, sesh, Neovim + LazyVim, Starship, modern CLI tools (incl. btop, yazi, gh) and the oh-my-pi
 # coding agent (omp) via Homebrew and Bun,
 # then copies the configs. Safe to re-run: replaced configs are backed up.
 set -euo pipefail
@@ -49,8 +49,8 @@ else
 fi
 eval "$($BREW shellenv)"
 
-say "Packages: tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit"
-brew install tmux sesh neovim starship eza bat fzf ripgrep fd zoxide lazygit
+say "Packages: tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh"
+brew install tmux sesh neovim starship eza bat fzf ripgrep fd zoxide lazygit btop yazi gh
 
 say "AI coding agent: oh-my-pi (omp)"
 export PATH="$HOME/.bun/bin:$PATH"
@@ -111,5 +111,8 @@ Open a new Ubuntu tab (or run: exec bash), then try:
   nvim             Neovim with LazyVim
   omp              oh-my-pi coding agent (first run asks you to log in / pick a provider)
   Ctrl+a a         omp in a split next to the current pane
+  y                yazi file manager (quitting with q leaves you in the folder you were in)
+  btop             system monitor (shows the WSL VM, not Windows apps)
+  gh auth login    sign the GitHub CLI in once
   z <dir>          jump with zoxide;  Ctrl+r history search;  Ctrl+t file search
 EOF

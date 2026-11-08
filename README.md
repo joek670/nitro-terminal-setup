@@ -1,7 +1,7 @@
 # Nitro terminal setup
 
 Windows Terminal + PowerShell 7 + WSL2 (Ubuntu), with Starship, a Nerd Font,
-tmux + sesh, Neovim + LazyVim, modern CLI tools, the oh-my-pi (`omp`) coding
+tmux + sesh, Neovim + LazyVim, lazygit, btop, yazi, the GitHub CLI, modern CLI tools, the oh-my-pi (`omp`) coding
 agent and Catppuccin Mocha everywhere.
 
 ## Layout
@@ -90,11 +90,11 @@ apps keep updating through Windows Update and the Microsoft Store.
 
 | Where | Change |
 |---|---|
-| winget | Windows Terminal, PowerShell 7, Git, Starship, eza, bat, fzf, ripgrep, fd, zoxide, Neovim, lazygit, oh-my-pi, JetBrainsMono Nerd Font |
+| winget | Windows Terminal, PowerShell 7, Git, GitHub CLI (gh), Starship, eza, bat, fzf, ripgrep, fd, zoxide, Neovim, lazygit, oh-my-pi, JetBrainsMono Nerd Font |
 | PowerShell | `PSFzf` module; profile at `$PROFILE`; execution policy CurrentUser -> RemoteSigned |
 | Windows Terminal | Adds Catppuccin Mocha; defaults: that scheme, JetBrainsMono Nerd Font 11, PowerShell 7 as default profile. Comments in `settings.json` are not kept (backup is) |
 | `%USERPROFILE%\.wslconfig` | Only if missing: WSL memory capped at half your RAM, gradual memory reclaim |
-| WSL | Ubuntu, Homebrew, tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, Bun + oh-my-pi; LazyVim starter in `~/.config/nvim` |
+| WSL | Ubuntu, Homebrew, tmux, sesh, Neovim, Starship, eza, bat, fzf, ripgrep, fd, zoxide, lazygit, btop, yazi, gh, Bun + oh-my-pi; LazyVim starter in `~/.config/nvim` |
 
 ## Cheat sheet
 
@@ -113,6 +113,9 @@ apps keep updating through Windows Update and the Microsoft Store.
 | `omp` | both | oh-my-pi coding agent |
 | `Alt+s` | bash, outside tmux | sesh picker |
 | `nvim`, `lg` | both | Neovim (LazyVim in WSL), lazygit |
+| `y` | bash | yazi file manager; `q` quits into the folder you were in, `Q` quits without moving |
+| `btop` | bash | System monitor. In WSL it shows the Linux VM (Docker, builds), not Windows apps |
+| `gh` | both | GitHub CLI; run `gh auth login` once on each side |
 
 ## Before gaming
 

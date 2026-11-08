@@ -32,6 +32,7 @@ if ($policy -in 'RemoteSigned', 'Unrestricted', 'Bypass') { Ok "Execution policy
 Head 'Commands'
 Test-Cmd pwsh '--version'
 Test-Cmd git '--version'
+Test-Cmd gh '--version'
 Test-Cmd starship '--version'
 Test-Cmd eza '--version'
 Test-Cmd bat '--version'

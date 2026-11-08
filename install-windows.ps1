@@ -39,8 +39,8 @@ function Update-SessionPath {
                 [Environment]::GetEnvironmentVariable('Path', 'User')
 }
 
-Write-Host '==> Core: Windows Terminal, PowerShell 7, Git, Starship'
-'Microsoft.WindowsTerminal', 'Microsoft.PowerShell', 'Git.Git', 'Starship.Starship' |
+Write-Host '==> Core: Windows Terminal, PowerShell 7, Git, GitHub CLI, Starship'
+'Microsoft.WindowsTerminal', 'Microsoft.PowerShell', 'Git.Git', 'GitHub.cli', 'Starship.Starship' |
     ForEach-Object { Install-WingetPackage $_ }
 
 if (-not $SkipCliTools) {
